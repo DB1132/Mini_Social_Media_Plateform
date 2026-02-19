@@ -1,0 +1,127 @@
+* {
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Background */
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Card */
+.auth-container {
+  background: #ffffff;
+  width: 360px;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Heading */
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #333;
+}
+
+/* Floating input group */
+.input-group {
+  position: relative;
+  width: 100%;
+  margin-bottom: 22px;
+}
+
+/* Input */
+.input-group input {
+  width: 100%;
+  padding: 14px 10px;
+  font-size: 16px;
+  border: 2px solid #aaa;
+  border-radius: 6px;
+  outline: none;
+  background: transparent;
+}
+
+/* Label */
+.input-group label {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #ffffff;
+  padding: 0 6px;
+  color: #777;
+  font-size: 16px;
+  pointer-events: none;
+  transition: 0.3s ease;
+}
+
+/* Float on focus or value */
+.input-group input:focus + label,
+.input-group input:valid + label {
+  top: -6px;
+  font-size: 12px;
+  color: #667eea;
+}
+
+/* Border focus */
+.input-group input:focus {
+  border-color: #667eea;
+}
+
+/* Button */
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #667eea;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #5a67d8;
+}
+
+/* Messages */
+.error-msg {
+  background-color: #ffe6e6;
+  color: #d8000c;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.success-msg {
+  background-color: #e6fffa;
+  color: #065f46;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Links */
+.auth-links {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.auth-links a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
+}
