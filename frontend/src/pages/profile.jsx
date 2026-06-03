@@ -71,20 +71,30 @@ function Profile() {
     formData.append("content", content);
     if (image) formData.append("image", image);
 
-    await fetch("/api/posts", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
+    try {
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
 
-    setContent("");
-    setImage(null);
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Failed to create post: ${errorData.message || response.statusText}`);
+        return;
+      }
 
-    const res = await fetch("/api/posts/user/me", {
-      credentials: "include",
-    });
-    const data = await res.json();
-    setPosts(data.posts);
+      setContent("");
+      setImage(null);
+
+      const res = await fetch("/api/posts/user/me", {
+        credentials: "include",
+      });
+      const data = await res.json();
+      setPosts(data.posts);
+    } catch (err) {
+      alert(`Error creating post: ${err.message}`);
+    }
   };
 
   const saveBio = async () => {
