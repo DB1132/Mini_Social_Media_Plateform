@@ -2,6 +2,9 @@ const Post = require("../models/Post");
 const Like = require("../models/Like");
 const Comment = require("../models/Comment");
 const Follow = require("../models/Follow");
+const { put } = require("@vercel/blob");
+const fs = require("fs");
+const path = require("path");
 
 const getPostDetails = async (req, res) => {
   try {
@@ -49,14 +52,36 @@ const createPost = async (req, res) => {
         .json({ success: false, message: "Post must have image or caption" });
     }
 
+    let imageUrl = "";
+
+    if (req.file) {
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        // Production (Vercel): Upload directly to Vercel Blob storage
+        const blob = await put(`posts/${Date.now()}-${req.file.originalname}`, req.file.buffer, {
+          access: "public",
+        });
+        imageUrl = blob.url;
+      } else {
+        // Local Development: Write buffer to local uploads/ directory
+        const filename = `${Date.now()}${path.extname(req.file.originalname)}`;
+        const uploadDir = path.join(__dirname, "../uploads");
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
+        imageUrl = `/uploads/${filename}`;
+      }
+    }
+
     const newPost = await Post.create({
       content,
-      image: req.file ? `/uploads/${req.file.filename}` : "",
+      image: imageUrl,
       user: req.user._id,
     });
 
     res.status(201).json({ success: true, post: newPost });
   } catch (error) {
+    console.error("Post creation error:", error);
     res.status(500).json({ success: false, message: "Failed to create post" });
   }
 };
