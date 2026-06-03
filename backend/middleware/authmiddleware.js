@@ -6,7 +6,7 @@
       const token = req.cookies.jwt;
 
       if (!token) {
-        return res.redirect("/api/auth/login?error=Please login first");
+        return res.status(401).json({ success: false, message: "Please login first" });
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -16,7 +16,7 @@
       next();
 
     } catch (error) {
-      return res.redirect("/api/auth/login?error=Invalid or expired token");
+      return res.status(401).json({ success: false, message: "Invalid or expired token" });
     }
   };
 

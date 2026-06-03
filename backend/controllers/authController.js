@@ -38,7 +38,7 @@ const registerUser = async (req, res) => {
     });
 
     // redirect to app
-    return res.redirect("/app");
+    return res.redirect("/app/feed");
 
   } catch (error) {
     console.error(error);
@@ -81,7 +81,7 @@ const loginUser = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res.redirect("/app");
+    return res.redirect("/app/feed");
 
   } catch (error) {
     console.error(error);
