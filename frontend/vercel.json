@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://code-alpha-social-media-plateform.vercel.app/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://code-alpha-social-media-plateform.vercel.app/uploads/:path*"
+    },
+    {
+      "source": "/css/:path*",
+      "destination": "https://code-alpha-social-media-plateform.vercel.app/css/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

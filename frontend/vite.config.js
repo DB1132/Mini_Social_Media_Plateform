@@ -4,9 +4,9 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/app/',
+  base: process.env.VERCEL ? '/' : '/app/',
   build: {
-    outDir: '../backend/public/app/dist',
+    outDir: process.env.VERCEL ? 'dist' : '../backend/public/app/dist',
     emptyOutDir: true,
   },
   server: {
