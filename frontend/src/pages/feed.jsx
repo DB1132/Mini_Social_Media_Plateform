@@ -29,12 +29,32 @@ function Feed() {
     loadFeed();
   }, [feedType]);
 
-  const handleLike = async (postId) => {
-    await fetch(`/api/posts/${postId}/like`, {
+  const handleLike = (postId) => {
+    // 1. Instantly update the UI state optimistically
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post._id === postId) {
+          const liked = !post.likedByMe;
+          const currentCount = post.LikeCount ?? 0;
+          return {
+            ...post,
+            likedByMe: liked,
+            LikeCount: liked ? currentCount + 1 : Math.max(0, currentCount - 1),
+          };
+        }
+        return post;
+      })
+    );
+
+    // 2. Perform the server call in the background without blocking the UI
+    fetch(`/api/posts/${postId}/like`, {
       method: "POST",
       credentials: "include",
+    }).catch((err) => {
+      console.error("Failed to toggle like on server:", err);
+      // Rollback to server state if the request fails
+      loadFeed();
     });
-    loadFeed();
   };
 
   const handleComment = async (postId) => {

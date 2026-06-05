@@ -12,31 +12,54 @@ const getPostDetails = async (req, res) => {
       .populate("user", "name")
       .sort({ createdAt: -1 });
 
-    const postWithCounts = await Promise.all(
-      posts.map(async (post) => {
-        const LikeCount = await Like.countDocuments({ post: post._id });
-        const CommentCount = await Comment.countDocuments({ post: post._id });
+    if (!posts || posts.length === 0) {
+      return res.json({ success: true, posts: [] });
+    }
 
-        const likedByMe = await Like.exists({
-          post: post._id,
-          user: req.user._id,
-        });
+    const postIds = posts.map((p) => p._id);
 
-        const comments = await Comment.find({ post: post._id })
-          .populate("user", "name")
-          .sort({ createdAt: -1 });
+    // 1. Fetch all like counts in a single bulk query
+    const likeCounts = await Like.aggregate([
+      { $match: { post: { $in: postIds } } },
+      { $group: { _id: "$post", count: { $sum: 1 } } },
+    ]);
+    const likeCountsMap = {};
+    likeCounts.forEach((item) => {
+      likeCountsMap[item._id.toString()] = item.count;
+    });
 
-        return {
-          ...post.toObject(),
-          LikeCount,
-          CommentCount,
-          likedByMe: !!likedByMe,
-          comments,
-        };
-      }),
-    );
+    // 2. Fetch all comment counts in a single bulk query
+    const commentCounts = await Comment.aggregate([
+      { $match: { post: { $in: postIds } } },
+      { $group: { _id: "$post", count: { $sum: 1 } } },
+    ]);
+    const commentCountsMap = {};
+    commentCounts.forEach((item) => {
+      commentCountsMap[item._id.toString()] = item.count;
+    });
+
+    // 3. Find which posts are liked by the current user in a single bulk query
+    const myLikes = await Like.find({
+      user: req.user._id,
+      post: { $in: postIds },
+    }).select("post");
+    const myLikedPostIdsSet = new Set(myLikes.map((l) => l.post.toString()));
+
+    // 4. Map the bulk data to the posts array
+    const postWithCounts = posts.map((post) => {
+      const postIdStr = post._id.toString();
+      return {
+        ...post.toObject(),
+        LikeCount: likeCountsMap[postIdStr] || 0,
+        CommentCount: commentCountsMap[postIdStr] || 0,
+        likedByMe: myLikedPostIdsSet.has(postIdStr),
+        comments: [], // Frontend loads comments dynamically on demand
+      };
+    });
+
     res.json({ success: true, posts: postWithCounts });
   } catch (error) {
+    console.error("Failed to load feed:", error);
     res.status(500).json({ success: false, message: "Failed to load feed" });
   }
 };
@@ -137,27 +160,53 @@ const getFollowingFeed = async (req, res) => {
       .populate("user", "name")
       .sort({ createdAt: -1 });
 
-    const postsWithExtras = await Promise.all(
-      posts.map(async (post) => {
-        const LikeCount = await Like.countDocuments({ post: post._id });
-        const CommentCount = await Comment.countDocuments({ post: post._id });
+    if (!posts || posts.length === 0) {
+      return res.json({ success: true, posts: [] });
+    }
 
-        const likedByMe = await Like.exists({
-          post: post._id,
-          user: userId,
-        });
+    const postIds = posts.map((p) => p._id);
 
-        return {
-          ...post.toObject(),
-          LikeCount,
-          CommentCount,
-          likedByMe: !!likedByMe,
-        };
-      }),
-    );
+    // 1. Fetch all like counts in a single bulk query
+    const likeCounts = await Like.aggregate([
+      { $match: { post: { $in: postIds } } },
+      { $group: { _id: "$post", count: { $sum: 1 } } },
+    ]);
+    const likeCountsMap = {};
+    likeCounts.forEach((item) => {
+      likeCountsMap[item._id.toString()] = item.count;
+    });
+
+    // 2. Fetch all comment counts in a single bulk query
+    const commentCounts = await Comment.aggregate([
+      { $match: { post: { $in: postIds } } },
+      { $group: { _id: "$post", count: { $sum: 1 } } },
+    ]);
+    const commentCountsMap = {};
+    commentCounts.forEach((item) => {
+      commentCountsMap[item._id.toString()] = item.count;
+    });
+
+    // 3. Find which posts are liked by the current user in a single bulk query
+    const myLikes = await Like.find({
+      user: userId,
+      post: { $in: postIds },
+    }).select("post");
+    const myLikedPostIdsSet = new Set(myLikes.map((l) => l.post.toString()));
+
+    // 4. Map the bulk data to the posts array
+    const postsWithExtras = posts.map((post) => {
+      const postIdStr = post._id.toString();
+      return {
+        ...post.toObject(),
+        LikeCount: likeCountsMap[postIdStr] || 0,
+        CommentCount: commentCountsMap[postIdStr] || 0,
+        likedByMe: myLikedPostIdsSet.has(postIdStr),
+      };
+    });
 
     res.json({ success: true, posts: postsWithExtras });
   } catch (error) {
+    console.error("Failed to load following feed:", error);
     res.status(500).json({ message: "Failed to load following feed" });
   }
 };
