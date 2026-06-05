@@ -67,6 +67,11 @@ function Profile() {
   }, [user, id]);
 
   const createPost = async () => {
+    if (image && image.size > 4 * 1024 * 1024) {
+      alert("Image size must be less than 4MB due to hosting limits.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("content", content);
     if (image) formData.append("image", image);
@@ -79,8 +84,17 @@ function Profile() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        alert(`Failed to create post: ${errorData.message || response.statusText}`);
+        let errorMessage = response.statusText;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          try {
+            const text = await response.text();
+            errorMessage = text || errorMessage;
+          } catch {}
+        }
+        alert(`Failed to create post: ${errorMessage}`);
         return;
       }
 
